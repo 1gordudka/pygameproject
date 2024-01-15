@@ -15,6 +15,7 @@ f = open("./data/maps_list.txt", mode="rt", encoding="utf-8")
 for number, line in enumerate(f):
     maps_list.append(line[:-1])
 f.close()
+location = 0
 
 
 
@@ -73,13 +74,16 @@ def start_screen():
         pygame.display.flip()
 
 def new_location():
-    for i in grass:
-        i.kill()
-    for i in trees:
-        i.kill()
-    board_2 = Board("./data/" + maps_list[1])
-    board_2.render(screen)
-    hero.renew(board_2)
+    global location
+    location += 1
+    if location != len(maps_list):
+        for i in grass:
+            i.kill()
+        for i in trees:
+            i.kill()
+        board_2 = Board("./data/" + maps_list[location])
+        board_2.render(screen)
+        hero.renew(board_2)
     
         
 
@@ -87,10 +91,15 @@ class Board:
     def __init__(self, file):
         self.cell_size = 100
         self.map = []
-        self.spr_1 = [pygame.transform.scale(load_image("grass_1.png"), (100, 100)),
+        spr_1 = [pygame.transform.scale(load_image("grass_1.png"), (100, 100)),
                       pygame.transform.scale(load_image("tree_1.png"), (50, 80))]
-        self.spr_2 = [pygame.transform.scale(load_image("grass_2.png"), (100, 100)),
+        spr_2 = [pygame.transform.scale(load_image("grass_2.png"), (100, 100)),
                       pygame.transform.scale(load_image("tree_2.png"), (50, 80))]
+        spr_3 = [pygame.transform.scale(load_image("grass_3.png"), (100, 100)),
+                      pygame.transform.scale(load_image("tree_3.png"), (50, 80))]
+        spr_4 = [pygame.transform.scale(load_image("grass_4.png"), (100, 100)),
+                      pygame.transform.scale(load_image("tree_4.png"), (50, 80))]
+        sprites = [spr_1, spr_2, spr_3, spr_4]
         self.location = 0
         self.f = open(file, mode="rt", encoding="utf-8")
         for number, line in enumerate(self.f):
@@ -100,38 +109,21 @@ class Board:
                 self.map.append(line.split())
         self.f.close()
         self.screen = screen
-        if self.location == 1:
-            for i in range(len(self.map)):
-                for j in range(len(self.map[i])):
+        for i in range(len(self.map)):
+            for j in range(len(self.map[i])):
+                sprite = pygame.sprite.Sprite()
+                sprite.image = sprites[self.location - 1][0]
+                sprite.rect = sprite.image.get_rect()
+                sprite.rect.x = 100 * j
+                sprite.rect.y = 100 * i
+                grass.add(sprite)
+                if self.map[i][j] == "t":
                     sprite = pygame.sprite.Sprite()
-                    sprite.image = self.spr_1[0]
+                    sprite.image = sprites[self.location - 1][1]
                     sprite.rect = sprite.image.get_rect()
-                    sprite.rect.x = 100 * j
-                    sprite.rect.y = 100 * i
-                    grass.add(sprite)
-                    if self.map[i][j] == "t":
-                        sprite = pygame.sprite.Sprite()
-                        sprite.image = self.spr_1[1]
-                        sprite.rect = sprite.image.get_rect()
-                        sprite.rect.x = 25 + 100 * j
-                        sprite.rect.y = 10 + 100 * i
-                        trees.add(sprite)
-        else:
-            for i in range(len(self.map)):
-                for j in range(len(self.map[i])):
-                    sprite = pygame.sprite.Sprite()
-                    sprite.image = self.spr_2[0]
-                    sprite.rect = sprite.image.get_rect()
-                    sprite.rect.x = 100 * j
-                    sprite.rect.y = 100 * i
-                    grass.add(sprite)
-                    if self.map[i][j] == "t":
-                        sprite = pygame.sprite.Sprite()
-                        sprite.image = self.spr_2[1]
-                        sprite.rect = sprite.image.get_rect()
-                        sprite.rect.x = 25 + 100 * j
-                        sprite.rect.y = 10 + 100 * i
-                        trees.add(sprite)
+                    sprite.rect.x = 25 + 100 * j
+                    sprite.rect.y = 10 + 100 * i
+                    trees.add(sprite)
 
     def can_move(self, x, y):
         if self.map[y][x] == "_":
@@ -241,8 +233,8 @@ class M_Hero(pygame.sprite.Sprite):
                         pygame.display.flip()
                     self.image = self.anim[0]
                     self.coords = self.n_coords
-                if self.coords == [6, 6] and self.loc == 1:
-                    self.loc = 2
+                if self.coords == [6, 6]:
+                    self.loc += 1
                     new_location()
                                    
 
@@ -274,8 +266,8 @@ class M_Hero(pygame.sprite.Sprite):
                         pygame.display.flip()
                     self.image = self.anim[0]
                     self.coords = self.n_coords
-                if self.coords == [6, 6] and self.loc == 1:
-                    self.loc = 2
+                if self.coords == [6, 6]:
+                    self.loc += 1
                     new_location()
 
     def left(self):
@@ -310,8 +302,8 @@ class M_Hero(pygame.sprite.Sprite):
                         pygame.display.flip()
                     self.image = self.anim[0]
                     self.coords = self.n_coords
-                if self.coords == [6, 6] and self.loc == 1:
-                    self.loc = 2
+                if self.coords == [6, 6]:
+                    self.loc += 1
                     new_location()
 
     def right(self):
@@ -346,8 +338,8 @@ class M_Hero(pygame.sprite.Sprite):
                         pygame.display.flip()
                     self.image = self.anim[0]
                     self.coords = self.n_coords
-                if self.coords == [6, 6] and self.loc == 1:
-                    self.loc = 2
+                if self.coords == [6, 6]:
+                    self.loc += 1
                     new_location()
 
     def renew(self, b_new):
@@ -362,7 +354,7 @@ class M_Hero(pygame.sprite.Sprite):
 
 
 if __name__ == '__main__':
-    board = Board("./data/" + maps_list[0])
+    board = Board("./data/" + maps_list[location])
     running = True
     hero = M_Hero(board)
     camera = Camera()
