@@ -3,13 +3,19 @@ import os
 import sys
 
 
-
+        
 pygame.init()
 size = width, height = 500, 500
 screen = pygame.display.set_mode(size)
 grass = pygame.sprite.Group()
 trees = pygame.sprite.Group()
 Hero = pygame.sprite.Group()
+maps_list = []
+f = open("./data/maps_list.txt", mode="rt", encoding="utf-8")
+for number, line in enumerate(f):
+    maps_list.append(line[:-1])
+f.close()
+
 
 
 
@@ -71,7 +77,7 @@ def new_location():
         i.kill()
     for i in trees:
         i.kill()
-    board_2 = Board("./data/map_2.txt")
+    board_2 = Board("./data/" + maps_list[1])
     board_2.render(screen)
     hero.renew(board_2)
     
@@ -356,7 +362,7 @@ class M_Hero(pygame.sprite.Sprite):
 
 
 if __name__ == '__main__':
-    board = Board("./data/map_1.txt")
+    board = Board("./data/" + maps_list[0])
     running = True
     hero = M_Hero(board)
     camera = Camera()
@@ -379,3 +385,5 @@ if __name__ == '__main__':
         Hero.draw(screen)
         pygame.display.flip()
     
+
+
