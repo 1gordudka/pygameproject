@@ -1,8 +1,8 @@
 1
 _ _ t _ t t t
 _ _ t _ t _ t
-_ _ _ _ t _ _
+_ 0 _ _ t _ _
 t _ t _ t _ t
 t _ t t t _ t
-_ _ _ _ t _ t
+_ _ _ 1 t _ t
 t t t _ _ _ _ 
