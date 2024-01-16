@@ -5,6 +5,10 @@ import sys
 
         
 pygame.init()
+pygame.mixer.init()
+music_list = ["./data/Summer.mp3", "./data/Autumn.mp3", "./data/Winter.mp3",
+              "./data/zemlya-v-illyuminatore.mp3"]
+pygame.mixer.music.load("./data/Summer.mp3")
 size = width, height = 500, 500
 screen = pygame.display.set_mode(size)
 grass = pygame.sprite.Group()
@@ -38,6 +42,7 @@ def load_image(name, colorkey=None):
 
 def terminate():
     pygame.quit()
+    pygame.mixer.init()
     sys.exit()
 
 def start_screen():
@@ -76,6 +81,8 @@ def start_screen():
 def new_location():
     global location
     location += 1
+    pygame.mixer.music.load(music_list[location])
+    pygame.mixer.music.play(-1)
     if location != len(maps_list):
         for i in grass:
             i.kill()
@@ -234,8 +241,9 @@ class M_Hero(pygame.sprite.Sprite):
                     self.image = self.anim[0]
                     self.coords = self.n_coords
                 if self.coords == [6, 6]:
-                    self.loc += 1
-                    new_location()
+                    if location != len(maps_list) - 1:
+                        self.loc += 1
+                        new_location()
                                    
 
     def down(self):
@@ -267,8 +275,9 @@ class M_Hero(pygame.sprite.Sprite):
                     self.image = self.anim[0]
                     self.coords = self.n_coords
                 if self.coords == [6, 6]:
-                    self.loc += 1
-                    new_location()
+                    if location != len(maps_list) - 1:
+                        self.loc += 1
+                        new_location()
 
     def left(self):
         self.anim = self.l_anim
@@ -303,8 +312,9 @@ class M_Hero(pygame.sprite.Sprite):
                     self.image = self.anim[0]
                     self.coords = self.n_coords
                 if self.coords == [6, 6]:
-                    self.loc += 1
-                    new_location()
+                    if location != len(maps_list) - 1:
+                        self.loc += 1
+                        new_location()
 
     def right(self):
         self.anim = self.r_anim
@@ -339,8 +349,9 @@ class M_Hero(pygame.sprite.Sprite):
                     self.image = self.anim[0]
                     self.coords = self.n_coords
                 if self.coords == [6, 6]:
-                    self.loc += 1
-                    new_location()
+                    if location != len(maps_list) - 1:
+                        self.loc += 1
+                        new_location()
 
     def renew(self, b_new):
         self.rect.x, self.rect.y = -20, 0
@@ -360,6 +371,7 @@ if __name__ == '__main__':
     camera = Camera()
     clock = pygame.time.Clock()
     start_screen()
+    pygame.mixer.music.play(-1)
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -376,6 +388,3 @@ if __name__ == '__main__':
         board.render(screen)
         Hero.draw(screen)
         pygame.display.flip()
-    
-
-
