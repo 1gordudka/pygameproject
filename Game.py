@@ -1,6 +1,7 @@
 import pygame
 import os
 import sys
+import random
 
 
         
@@ -13,6 +14,7 @@ size = width, height = 500, 500
 screen = pygame.display.set_mode(size)
 grass = pygame.sprite.Group()
 trees = pygame.sprite.Group()
+stars = pygame.sprite.Group()
 Hero = pygame.sprite.Group()
 maps_list = []
 f = open("./data/maps_list.txt", mode="rt", encoding="utf-8")
@@ -20,6 +22,7 @@ for number, line in enumerate(f):
     maps_list.append(line[:-1])
 f.close()
 location = 0
+screen_rect = (0, 0, width, height)
 
 
 
@@ -78,6 +81,37 @@ def start_screen():
                 return
         pygame.display.flip()
 
+
+def win_screen():
+    text = ["ВЫ ПОБЕДИЛИ!!!"]
+
+    fon = pygame.transform.scale(load_image('main_screen.jpeg'), (width, height))
+    screen.blit(fon, (0, 0))
+    font = pygame.font.Font(None, 30)
+    string_rendered = font.render(text[0], 1, pygame.Color('black'))
+    intro_rect = string_rendered.get_rect()
+    text_coord = 250
+    intro_rect.top = text_coord
+    intro_rect.x = 150
+    for i in range(3):
+        create_particles((intro_rect.x + i * 50, intro_rect.y - 50))
+        
+    
+    while True:
+        
+        stars.update()
+        screen.fill((0, 0, 0))
+        screen.blit(fon, (0, 0))
+        for line in text:
+            screen.blit(string_rendered, intro_rect)
+        stars.draw(screen)    
+        pygame.display.flip()
+        clock.tick(50)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+
+
 def new_location():
     global location
     location += 1
@@ -91,6 +125,33 @@ def new_location():
         board_2 = Board("./data/" + maps_list[location])
         board_2.render(screen)
         hero.renew(board_2)
+
+
+def create_particles(position):
+    particle_count = 20
+    numbers = range(-5, 6)
+    for _ in range(particle_count):
+        Particle(position, random.choice(numbers), random.choice(numbers))
+
+class Particle(pygame.sprite.Sprite):
+    fire = [load_image("star.png")]
+    for scale in (5, 10, 20):
+        fire.append(pygame.transform.scale(fire[0], (scale, scale)))
+
+    def __init__(self, pos, dx, dy):
+        super().__init__(stars)
+        self.image = random.choice(self.fire)
+        self.rect = self.image.get_rect()
+        self.velocity = [dx, dy]
+        self.rect.x, self.rect.y = pos
+        self.gravity = 1
+
+    def update(self):
+        self.velocity[1] += self.gravity
+        self.rect.x += self.velocity[0]
+        self.rect.y += self.velocity[1]
+        if not self.rect.colliderect(screen_rect):
+            self.kill()
     
         
 
@@ -244,6 +305,8 @@ class M_Hero(pygame.sprite.Sprite):
                     if location != len(maps_list) - 1:
                         self.loc += 1
                         new_location()
+                    else:
+                        win_screen()
                                    
 
     def down(self):
@@ -278,6 +341,8 @@ class M_Hero(pygame.sprite.Sprite):
                     if location != len(maps_list) - 1:
                         self.loc += 1
                         new_location()
+                    else:
+                        win_screen()
 
     def left(self):
         self.anim = self.l_anim
@@ -315,6 +380,8 @@ class M_Hero(pygame.sprite.Sprite):
                     if location != len(maps_list) - 1:
                         self.loc += 1
                         new_location()
+                    else:
+                        win_screen()
 
     def right(self):
         self.anim = self.r_anim
@@ -352,6 +419,8 @@ class M_Hero(pygame.sprite.Sprite):
                     if location != len(maps_list) - 1:
                         self.loc += 1
                         new_location()
+                    else:
+                        win_screen()
 
     def renew(self, b_new):
         self.rect.x, self.rect.y = -20, 0
@@ -388,3 +457,4 @@ if __name__ == '__main__':
         board.render(screen)
         Hero.draw(screen)
         pygame.display.flip()
+
