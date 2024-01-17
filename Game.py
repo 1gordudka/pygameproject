@@ -23,6 +23,97 @@ def load_image(name, colorkey=None):
     return image
 
 
+class Board:
+    def __init__(self, file):
+        self.cell_size = 100
+        self.map = []
+        spr_1 = [pygame.transform.scale(load_image("grass_1.png"), (100, 100)),
+                      pygame.transform.scale(load_image("tree_1.png"), (50, 80))]
+        spr_2 = [pygame.transform.scale(load_image("grass_2.png"), (100, 100)),
+                      pygame.transform.scale(load_image("tree_2.png"), (50, 80))]
+        spr_3 = [pygame.transform.scale(load_image("grass_3.png"), (100, 100)),
+                      pygame.transform.scale(load_image("tree_3.png"), (50, 80))]
+        spr_4 = [pygame.transform.scale(load_image("grass_4.png"), (100, 100)),
+                      pygame.transform.scale(load_image("tree_4.png"), (50, 80))]
+        sprites = [spr_1, spr_2, spr_3, spr_4]
+        self.location = 0
+        self.f = open(file, mode="rt", encoding="utf-8")
+        for number, line in enumerate(self.f):
+            if number == 0:
+                self.location = int(line)
+            else:
+                self.map.append(line.split())
+        self.f.close()
+        self.screen = screen
+        for i in range(len(self.map)):
+            for j in range(len(self.map[i])):
+                sprite = pygame.sprite.Sprite()
+                sprite.image = sprites[self.location - 1][0]
+                sprite.rect = sprite.image.get_rect()
+                sprite.rect.x = 100 * j
+                sprite.rect.y = 100 * i
+                grass.add(sprite)
+                if self.map[i][j] == "t":
+                    sprite = pygame.sprite.Sprite()
+                    sprite.image = sprites[self.location - 1][1]
+                    sprite.rect = sprite.image.get_rect()
+                    sprite.rect.x = 25 + 100 * j
+                    sprite.rect.y = 10 + 100 * i
+                    trees.add(sprite)
+                if self.map[i][j].isdigit() and int(self.map[i][j]) % 2 == 0:
+                    monster = Monster(100, 25 + 100 * j, 10 + 100 * i)
+                    monsters.add(monster)
+                if self.map[i][j].isdigit() and int(self.map[i][j]) % 2 != 0:
+                    boss = Monster(200, 25 + 100 * j, 10 + 100 * i, True)
+                    monsters.add(boss)
+
+    def can_move(self, x, y):
+        if self.map[y][x] == "_":
+            return True
+        else:
+            return False
+    
+    def free_tile(self, num):
+        print(*self.map)
+        for i in range(len(self.map)):
+            if str(num) in self.map[i]:
+                self.map[i][self.map[i].index(str(num))] = "_"
+                break
+    
+    def render(self, screen):
+        grass.draw(screen)
+        trees.draw(screen) 
+        monsters.draw(screen)
+
+
+class Monster(pygame.sprite.Sprite):
+    def __init__(self, health, x, y, isBoss=False):
+        super().__init__()
+        if isBoss:
+            self.image = boss_spr
+            self.max = 200
+        else:
+            self.image = monster_spr
+            self.max = 100
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.health = health
+
+
+    def draw_health_bar(self, screen, hp):
+        health_bar_width = 50
+        health_bar_height = 5
+        background_rect = pygame.Rect(
+            self.rect.x, self.rect.y - 10, health_bar_width, health_bar_height
+        )
+        pygame.draw.rect(screen, (255, 0, 0), background_rect)
+        current_health_width = (hp / self.max) * health_bar_width
+        current_health_rect = pygame.Rect(
+            self.rect.x , self.rect.y - 10, current_health_width, health_bar_height
+        )
+        pygame.draw.rect(screen, (0, 255, 0), current_health_rect)
+
 pygame.init()
 pygame.mixer.init()
 music_list = ["./data/Summer.mp3", "./data/Autumn.mp3", "./data/Winter.mp3",
@@ -35,7 +126,6 @@ trees = pygame.sprite.Group()
 stars = pygame.sprite.Group()
 Hero = pygame.sprite.Group()
 monsters = pygame.sprite.Group()
-bosses = pygame.sprite.Group()
 enemies_hp = [100, 200, 100, 200, 100, 200, 100, 200]
 hero_hp = 500
 green = (0, 255, 0)
@@ -48,6 +138,7 @@ location = 0
 screen_rect = (0, 0, width, height)
 monster_spr = pygame.transform.scale(load_image("monster_1.png"), (50, 80))
 boss_spr = pygame.transform.scale(load_image("boss_monster.png"), (50, 80))
+board = Board("./data/" + maps_list[location])
 
 
 attack_timer = time.time()
@@ -162,8 +253,9 @@ def resetAll():
     hero_hp = 500
     enemies_hp = [100, 200, 100, 200, 100, 200, 100, 200]
 
-def new_location():
+def new_location(brd):
     global location
+    global board
     location += 1
     pygame.mixer.music.load(music_list[location])
     pygame.mixer.music.play(-1)
@@ -172,9 +264,9 @@ def new_location():
             i.kill()
         for i in trees:
             i.kill()
-        board_2 = Board("./data/" + maps_list[location])
-        board_2.render(screen)
-        hero.renew(board_2)
+        board = Board("./data/" + maps_list[location])
+        board.render(screen)
+        hero.renew(board)
 
 
 def create_particles(position):
@@ -206,67 +298,7 @@ class Particle(pygame.sprite.Sprite):
     
         
 
-class Board:
-    def __init__(self, file):
-        self.cell_size = 100
-        self.map = []
-        spr_1 = [pygame.transform.scale(load_image("grass_1.png"), (100, 100)),
-                      pygame.transform.scale(load_image("tree_1.png"), (50, 80))]
-        spr_2 = [pygame.transform.scale(load_image("grass_2.png"), (100, 100)),
-                      pygame.transform.scale(load_image("tree_2.png"), (50, 80))]
-        spr_3 = [pygame.transform.scale(load_image("grass_3.png"), (100, 100)),
-                      pygame.transform.scale(load_image("tree_3.png"), (50, 80))]
-        spr_4 = [pygame.transform.scale(load_image("grass_4.png"), (100, 100)),
-                      pygame.transform.scale(load_image("tree_4.png"), (50, 80))]
-        sprites = [spr_1, spr_2, spr_3, spr_4]
-        self.location = 0
-        self.f = open(file, mode="rt", encoding="utf-8")
-        for number, line in enumerate(self.f):
-            if number == 0:
-                self.location = int(line)
-            else:
-                self.map.append(line.split())
-        self.f.close()
-        self.screen = screen
-        for i in range(len(self.map)):
-            for j in range(len(self.map[i])):
-                sprite = pygame.sprite.Sprite()
-                sprite.image = sprites[self.location - 1][0]
-                sprite.rect = sprite.image.get_rect()
-                sprite.rect.x = 100 * j
-                sprite.rect.y = 100 * i
-                grass.add(sprite)
-                if self.map[i][j] == "t":
-                    sprite = pygame.sprite.Sprite()
-                    sprite.image = sprites[self.location - 1][1]
-                    sprite.rect = sprite.image.get_rect()
-                    sprite.rect.x = 25 + 100 * j
-                    sprite.rect.y = 10 + 100 * i
-                    trees.add(sprite)
-                if self.map[i][j].isdigit() and int(self.map[i][j]) % 2 == 0:
-                    monster = Monster(enemies_hp[int(self.map[i][j])], 25 + 100 * j, 10 + 100 * i)
-                    monsters.add(monster)
-                if self.map[i][j].isdigit() and int(self.map[i][j]) % 2 != 0:
-                    boss = Monster(enemies_hp[int(self.map[i][j])], 25 + 100 * j, 10 + 100 * i, True)
-                    monsters.add(boss)
-
-    def can_move(self, x, y):
-        if self.map[y][x] == "_":
-            return True
-        else:
-            return False
     
-    def free_tile(self, num):
-        for i in range(len(self.map)):
-            if str(num) in self.map[i]:
-                self.map[i][self.map[i].index(str(num))] = "_"
-                break
-    
-    def render(self, screen):
-        grass.draw(self.screen)
-        trees.draw(self.screen) 
-        monsters.draw(self.screen)    
-        bosses.draw(self.screen)   
 
 
 class Camera:
@@ -365,6 +397,8 @@ class M_Hero(pygame.sprite.Sprite):
                             camera.apply(j, 0, 5)
                         for j in trees:
                             camera.apply(j, 0, 5)
+                        for j in monsters:
+                            camera.apply(j, 0, 5)
                         self.image = self.anim[(i + 1) % len(self.anim)]
                         self.b.render(screen)
                         Hero.draw(screen)
@@ -385,7 +419,7 @@ class M_Hero(pygame.sprite.Sprite):
                 if self.coords == [6, 6]:
                     if location != len(maps_list) - 1:
                         self.loc += 1
-                        new_location()
+                        new_location(self.b)
                     else:
                         win_screen()
                                    
@@ -400,6 +434,8 @@ class M_Hero(pygame.sprite.Sprite):
                         for j in grass:
                             camera.apply(j, 0, -5)
                         for j in trees:
+                            camera.apply(j, 0, -5)
+                        for j in monsters:
                             camera.apply(j, 0, -5)
                         self.image = self.anim[(i + 1) % len(self.anim)]
                         self.b.render(screen)
@@ -421,7 +457,7 @@ class M_Hero(pygame.sprite.Sprite):
                 if self.coords == [6, 6]:
                     if location != len(maps_list) - 1:
                         self.loc += 1
-                        new_location()
+                        new_location(self.b)
                     else:
                         win_screen()
 
@@ -439,6 +475,8 @@ class M_Hero(pygame.sprite.Sprite):
                         for j in grass:
                             camera.apply(j, 5, 0)
                         for j in trees:
+                            camera.apply(j, 5, 0)
+                        for j in monsters:
                             camera.apply(j, 5, 0)
                         self.image = self.anim[(i + 1) % len(self.anim)]
                         self.b.render(screen)
@@ -460,7 +498,7 @@ class M_Hero(pygame.sprite.Sprite):
                 if self.coords == [6, 6]:
                     if location != len(maps_list) - 1:
                         self.loc += 1
-                        new_location()
+                        new_location(self.b)
                     else:
                         win_screen()
 
@@ -478,6 +516,8 @@ class M_Hero(pygame.sprite.Sprite):
                         for j in grass:
                             camera.apply(j, -5, 0)
                         for j in trees:
+                            camera.apply(j, -5, 0)
+                        for j in monsters:
                             camera.apply(j, -5, 0)
                         self.image = self.anim[(i + 1) % len(self.anim)]
                         self.b.render(screen)
@@ -499,7 +539,7 @@ class M_Hero(pygame.sprite.Sprite):
                 if self.coords == [6, 6]:
                     if location != len(maps_list) - 1:
                         self.loc += 1
-                        new_location()
+                        new_location(self.b)
                     else:
                         win_screen()
 
@@ -510,40 +550,12 @@ class M_Hero(pygame.sprite.Sprite):
         self.b = b_new
         Hero.draw(screen)
 
-        
-class Monster(pygame.sprite.Sprite):
-    def __init__(self, health, x, y, isBoss=False):
-        super().__init__()
-        if isBoss:
-            self.image = boss_spr
-            self.max = 200
-        else:
-            self.image = monster_spr
-            self.max = 100
-        self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
-        self.health = health
-
-
-    def draw_health_bar(self, screen, hp):
-        health_bar_width = 50
-        health_bar_height = 5
-        background_rect = pygame.Rect(
-            self.rect.x, self.rect.y - 10, health_bar_width, health_bar_height
-        )
-        pygame.draw.rect(screen, (255, 0, 0), background_rect)
-        current_health_width = (hp / self.max) * health_bar_width
-        current_health_rect = pygame.Rect(
-            self.rect.x , self.rect.y - 10, current_health_width, health_bar_height
-        )
-        pygame.draw.rect(screen, (0, 255, 0), current_health_rect)
+    
 
                         
 
 
 if __name__ == '__main__':
-    board = Board("./data/" + maps_list[location])
     running = True
     hero = M_Hero(board)
     camera = Camera()
@@ -566,11 +578,13 @@ if __name__ == '__main__':
                 elif event.key == pygame.K_DOWN:
                     hero.down()
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                enemies_hp[enemy_num] -= 10
-        if enemies_hp[enemy_num] <= 0:
-            monsters.remove(enemy)
-            board.free_tile(enemy_num)
-            enemy_num += 1
+                enemies_hp[0] -= 10
+        if len(enemies_hp) > 0:
+            if enemies_hp[0] <= 0:
+                enemies_hp.pop(0)
+                monsters.remove(enemy)
+                board.free_tile(enemy_num)
+                enemy_num += 1
         if hero_hp == 0:
             hero.reset_coords()
             lose_screen()
