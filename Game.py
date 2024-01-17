@@ -74,7 +74,6 @@ class Board:
             return False
     
     def free_tile(self, num):
-        print(*self.map)
         for i in range(len(self.map)):
             if str(num) in self.map[i]:
                 self.map[i][self.map[i].index(str(num))] = "_"
@@ -183,6 +182,39 @@ def start_screen():
                 return
         pygame.display.flip()
 
+def tutorial_screen():
+    intro_text = ["", "",
+                  "",
+                  "Управление в игре осуществляется стрелками",
+                  "Для победы над монстром",
+                  "как можно быстрее кликайте мышкой.",
+                  "",
+                  "",
+                  "",
+                  "Нажмите любую клавишу для продолжения"]
+
+    fon = pygame.transform.scale(load_image('main_screen.jpeg'), (width, height))
+    screen.blit(fon, (0, 0))
+    font = pygame.font.Font(None, 30)
+    text_coord = 50
+    for line in intro_text:
+        string_rendered = font.render(line, 1, pygame.Color('black'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 10
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.KEYDOWN or \
+                    event.type == pygame.MOUSEBUTTONDOWN:
+                return
+        pygame.display.flip()
+
 
 def win_screen():
     text = ["ВЫ ПОБЕДИЛИ!!!"]
@@ -216,7 +248,7 @@ def win_screen():
 
 def lose_screen():
 
-    text = ["Вы проиграли...(( Нажмите L"]
+    text = ["ВЫ ПРОИГРАЛИ..."]
     fon = pygame.transform.scale(load_image('main_screen.jpeg'), (width, height))
     screen.blit(fon, (0, 0))
     font = pygame.font.Font(None, 30)
@@ -225,33 +257,22 @@ def lose_screen():
     text_coord = 250
     intro_rect.top = text_coord
     intro_rect.x = 150
+        
+    
+
     
     while True:
         
-        stars.update()
         screen.fill((0, 0, 0))
         screen.blit(fon, (0, 0))
         for line in text:
-            screen.blit(string_rendered, intro_rect)
-        stars.draw(screen)    
+            screen.blit(string_rendered, intro_rect)    
         clock.tick(50)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
-            elif event.type == pygame.KEYDOWN or \
-                    event.type == pygame.MOUSEBUTTONDOWN:
-                resetAll()
-                return 
         pygame.display.flip()
 
-
-def resetAll():
-    global location
-    global hero_hp    
-    global enemies_hp 
-    location = 0
-    hero_hp = 500
-    enemies_hp = [100, 200, 100, 200, 100, 200, 100, 200]
 
 def new_location(brd):
     global location
@@ -561,6 +582,7 @@ if __name__ == '__main__':
     camera = Camera()
     clock = pygame.time.Clock()
     start_screen()
+    tutorial_screen()
     pygame.mixer.music.play(-1)
     enemy_num = 0
     enemy = Monster(100, 0, 0)
