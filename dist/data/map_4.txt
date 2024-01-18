@@ -1,0 +1,8 @@
+4
+_ _ _ t t t t
+_ t _ _ 6 t t
+_ _ t t _ _ t
+t _ t t t _ t
+_ _ t t t _ t
+t t t t t 7 t
+t _ t _ t _ _

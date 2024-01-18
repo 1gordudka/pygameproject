@@ -600,7 +600,8 @@ if __name__ == '__main__':
                 elif event.key == pygame.K_DOWN:
                     hero.down()
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                enemies_hp[0] -= 10
+                if len(enemies_hp) > 0:
+                    enemies_hp[0] -= 10
         if len(enemies_hp) > 0:
             if enemies_hp[0] <= 0:
                 enemies_hp.pop(0)
